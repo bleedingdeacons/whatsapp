@@ -1,6 +1,9 @@
 # WhatsApp
 
-**Version:** 1.0.0
+[![CI](https://github.com/bleedingdeacons/whatsapp/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/bleedingdeacons/whatsapp/actions/workflows/ci.yml)
+![Version](https://img.shields.io/badge/version-1.0.0-blue)
+![PHP](https://img.shields.io/badge/php-8.1%2B-777bb4)
+![Licence](https://img.shields.io/badge/licence-MIT%20(Modified)-green)
 
 Rabbit driver for the **WhatsApp Business Cloud API** (Meta Graph API). It
 binds a concrete `MessageService` against [Rabbit](https://github.com/thebleedingdeacons/rabbit)'s
