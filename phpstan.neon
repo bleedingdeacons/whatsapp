@@ -1,0 +1,35 @@
+includes:
+    - vendor/szepeviktor/phpstan-wordpress/extension.neon
+
+parameters:
+    level: 5
+    # An ignoreErrors pattern that stops matching is reported as an error by
+    # default, so a stale pattern would fail the gate — and whether a pattern
+    # matches depends on which sibling plugins are present, which differs
+    # between a developer's checkout and CI. Matches amber.
+    reportUnmatchedIgnoredErrors: false
+    paths:
+        - src
+    excludePaths:
+        - tests
+    bootstrapFiles:
+        - vendor/autoload.php
+    scanFiles:
+        # Defines the plugin constants. Not under paths (src only), so it has
+        # to be scanned explicitly.
+        - whatsapp.php
+    scanDirectories:
+        # WhatsApp is a Rabbit driver and implements its contracts. Sentinel
+        # is optional at runtime — HasLogger degrades to error_log() without
+        # it — but its Sentinel_Log_Channel is referenced in type positions.
+        # sentinel-logger.php is not PSR-4 compliant and composer skips it
+        # when generating autoload rules, so scanDirectories (which reads
+        # files directly) is what resolves it.
+        - ../rabbit/src
+        - ../sentinel/src
+    ignoreErrors:
+        # WordPress functions that PHPStan doesn't recognize
+        - '#Function get_plugin_data not found#'
+        - '#Function dbDelta not found#'
+        # A wp-config.php salt. Defined by the site, never by the plugin.
+        - '#Constant AUTH_KEY not found#'

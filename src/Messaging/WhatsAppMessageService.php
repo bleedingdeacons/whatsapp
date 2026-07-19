@@ -125,8 +125,8 @@ final class WhatsAppMessageService extends AbstractMessageService
             throw new MessagingException('Could not reach the WhatsApp API: ' . $e->getMessage(), 0, $e);
         }
 
-        $status = (int) ($resp['status'] ?? 0);
-        $rawBody = (string) ($resp['body'] ?? '');
+        $status = (int) $resp['status'];
+        $rawBody = (string) $resp['body'];
 
         if ($status < 200 || $status >= 300) {
             $error = WhatsAppResponseParser::extractError($rawBody);

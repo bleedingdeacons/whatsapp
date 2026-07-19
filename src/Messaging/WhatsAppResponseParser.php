@@ -36,8 +36,8 @@ final class WhatsAppResponseParser
      */
     public function parse(array $response): MessageResult
     {
-        $status = (int) ($response['status'] ?? 0);
-        $body = (string) ($response['body'] ?? '');
+        $status = (int) $response['status'];
+        $body = (string) $response['body'];
 
         $decoded = json_decode($body, true);
         $decoded = is_array($decoded) ? $decoded : [];
