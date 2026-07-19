@@ -18,6 +18,11 @@ parameters:
         # Defines the plugin constants. Not under paths (src only), so it has
         # to be scanned explicitly.
         - whatsapp.php
+    # NOTE: ../rabbit/src is required for this config to resolve, and
+    # bleedingdeacons/rabbit is a private repo. CI's default GITHUB_TOKEN
+    # cannot clone it, so PHPStan cannot yet be gated here the way it is in
+    # beacon, tamar and rabbit. It works locally, where the sibling plugin
+    # is present. Gating needs rabbit made public or a PAT secret.
     scanDirectories:
         # WhatsApp is a Rabbit driver and implements its contracts. Sentinel
         # is optional at runtime — HasLogger degrades to error_log() without
