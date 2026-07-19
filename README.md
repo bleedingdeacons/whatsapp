@@ -78,7 +78,7 @@ or a raw number (ad-hoc).
 ```bash
 composer install
 composer test    # PHPUnit unit tests (payload builder, response parser, driver)
-composer stan    # PHPStan
+composer phpstan # PHPStan
 composer cs      # PHP_CodeSniffer (WordPress standard)
 ```
 
