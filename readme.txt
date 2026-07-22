@@ -3,8 +3,8 @@ Contributors: thebleedingdeacons
 Tags: messaging, whatsapp, cloud-api, members, notifications
 Requires at least: 6.1
 Tested up to: 6.9
-Stable tag: 1.0.4
-Build date: 2026/07/20 18:47:45
+Stable tag: 1.0.5
+Build date: 2026/07/22 02:15:57
 Requires PHP: 8.1
 License: MIT (Modified — No Resale)
 
