@@ -5,28 +5,34 @@ declare(strict_types=1);
 /**
  * PHPUnit bootstrap for WhatsApp.
  *
- * Defines ABSPATH and a couple of WP function shims, loads the Rabbit
- * source this driver depends on (interfaces, models, abstract base,
- * transport contracts), then the WhatsApp source under test. Mirrors the
- * way Tamar's test bootstrap pulls in Beacon's source.
+ * WordPress stand-ins come from bleedingdeacons/wp-mocks, shared across the
+ * plugin suite. Its bootstrap loads Patchwork before anything patchable, so
+ * anything below that defines WordPress functions of its own must stay after
+ * the Bootstrap::load() call, not before it.
+ *
+ * Not loaded here: the `sentinel` stub group. Whatsapp\Logger\HasLogger is
+ * written to degrade to error_log() when wp_log() is absent, and that is the
+ * branch these tests run; defining wp_log() would silently route logging
+ * somewhere no test looks.
+ *
+ * Beyond the stubs this still loads the Rabbit source this driver depends on
+ * (interfaces, models, abstract base, transport contracts), which is not
+ * reachable from Composer's autoloader here, then the WhatsApp source under
+ * test.
  */
+
+use BleedingDeacons\WpMocks\Bootstrap;
+use BleedingDeacons\WpMocks\WpState;
+
+require_once __DIR__ . '/../vendor/autoload.php';
+
+Bootstrap::load(['wordpress']);
+
+// Makes plugins_url()/plugin_dir_url() answer with WhatsApp's own path.
+WpState::$pluginSlug = 'whatsapp';
 
 if (!defined('ABSPATH')) {
     define('ABSPATH', __DIR__ . '/');
-}
-
-if (!function_exists('wp_json_encode')) {
-    function wp_json_encode($data, int $options = 0, int $depth = 512): string|false
-    {
-        return json_encode($data, $options, $depth);
-    }
-}
-
-if (!function_exists('sanitize_key')) {
-    function sanitize_key($key): string
-    {
-        return strtolower(preg_replace('/[^a-z0-9_\-]/', '', (string) $key) ?? '');
-    }
 }
 
 // --- Rabbit source (the contracts this driver builds on) -------------

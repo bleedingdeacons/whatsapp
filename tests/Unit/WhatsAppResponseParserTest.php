@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Whatsapp\Tests\Unit;
 
-use PHPUnit\Framework\TestCase;
+use BleedingDeacons\WpMocks\TestCase;
 use Rabbit\Messaging\Interfaces\MessagingException;
 use Whatsapp\Messaging\WhatsAppResponseParser;
 
