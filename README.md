@@ -8,7 +8,7 @@
 ![Licence](https://img.shields.io/badge/licence-MIT%20(Modified)-green)
 
 Rabbit driver for the **WhatsApp Business Cloud API** (Meta Graph API). It
-binds a concrete `MessageService` against [Rabbit](https://github.com/thebleedingdeacons/rabbit)'s
+binds a concrete `MessageService` against [Rabbit](https://github.com/bleedingdeacons/rabbit)'s
 contract so Unity members can be messaged over WhatsApp.
 
 WhatsApp does nothing on its own — it requires Rabbit (which itself requires
