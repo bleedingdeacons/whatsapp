@@ -9,7 +9,7 @@ declare(strict_types=1);
  * Requires at least: 6.1
  * Requires PHP: 8.1
  * Requires Plugins: rabbit
- * GitHub Plugin URI: https://github.com/thebleedingdeacons/whatsapp
+ * GitHub Plugin URI: https://github.com/bleedingdeacons/whatsapp
  * GitHub Branch: main
  * Author: The Bleeding Deacons
  * Author URI: https://github.com/bleedingdeacons/whatsapp
