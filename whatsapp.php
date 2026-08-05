@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 /**
  * Plugin Name: WhatsApp
  * Description: Rabbit driver for the WhatsApp Business Cloud API (Meta Graph API). Implements Rabbit's MessageService contract by posting to /<phone-number-id>/messages with a bearer token. Requires the Rabbit plugin to be installed and active.
@@ -17,6 +15,8 @@ declare(strict_types=1);
  * License: MIT (Modified)
  * Text Domain: whatsapp
  */
+
+declare(strict_types=1);
 
 if (!defined('ABSPATH')) {
     exit;
@@ -83,7 +83,6 @@ add_action('rabbit/loaded', function ($container) {
          * @param \Psr\Container\ContainerInterface $container The shared dependency container
          */
         do_action('whatsapp/loaded', \Whatsapp\Plugin::getContainer());
-
     } catch (\Exception $e) {
         function_exists('wp_log')
             ? wp_log('whatsapp')->error('WhatsApp Plugin Initialisation Error: ' . $e->getMessage(), ['exception' => $e->getMessage(), 'trace' => $e->getTraceAsString()])
