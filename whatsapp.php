@@ -3,7 +3,7 @@
 /**
  * Plugin Name: WhatsApp
  * Description: Rabbit driver for the WhatsApp Business Cloud API (Meta Graph API). Implements Rabbit's MessageService contract by posting to /<phone-number-id>/messages with a bearer token. Requires the Rabbit plugin to be installed and active.
- * Version: 1.3.5
+ * Version: 1.3.6
  * Requires at least: 6.1
  * Requires PHP: 8.1
  * Requires Plugins: rabbit
