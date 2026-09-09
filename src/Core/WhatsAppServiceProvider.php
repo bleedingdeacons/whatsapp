@@ -12,6 +12,7 @@ use Psr\Container\ContainerInterface;
 use Rabbit\Messaging\Interfaces\MessageService;
 use Rabbit\Transport\Interfaces\HttpTransport;
 use Rabbit\Transport\Interfaces\HttpTransportFactory;
+use Rabbit\Transport\UserAgent;
 use Rabbit\Transport\WpHttpTransportFactory;
 use Whatsapp\Admin\WhatsAppSettings;
 use Whatsapp\Messaging\WhatsAppMessageService;
@@ -55,7 +56,10 @@ final class WhatsAppServiceProvider
             return new WpHttpTransportFactory(
                 verifyTls: $settings['verify_tls'],
                 timeoutSeconds: $settings['timeout'],
-                userAgent: 'WhatsApp for Rabbit (WordPress)',
+                // Names the plugin, its version, a contact address and
+                // which deployment the traffic is from, so the Graph API
+                // sees a request that introduces itself properly.
+                userAgent: UserAgent::forApp('WhatsApp', defined('WHATSAPP_VERSION') ? WHATSAPP_VERSION : ''),
                 // Attribute the generic Rabbit transport's HTTP logging
                 // to WhatsApp's own channel.
                 logChannel: 'whatsapp',
