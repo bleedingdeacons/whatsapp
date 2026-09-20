@@ -2,10 +2,10 @@
 Contributors: thebleedingdeacons
 Tags: messaging, whatsapp, cloud-api, members, notifications
 Requires at least: 6.1
-Tested up to: 6.9
+Tested up to: 7.1.1
 Stable tag: 1.3.15
 Build date: 2026/09/09 20:08:11
-Requires PHP: 8.1
+Requires PHP: 8.4
 License: MIT (Modified — No Resale)
 
 Rabbit driver for the WhatsApp Business Cloud API. Sends messages to Unity members via the Meta Graph API.
