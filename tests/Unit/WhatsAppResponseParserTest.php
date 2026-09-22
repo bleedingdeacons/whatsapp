@@ -4,14 +4,11 @@ declare(strict_types=1);
 
 namespace Whatsapp\Tests\Unit;
 
-use BleedingDeacons\WpMocks\TestCase;
 use Rabbit\Messaging\Interfaces\MessagingException;
 use Whatsapp\Messaging\WhatsAppResponseParser;
 
-final class WhatsAppResponseParserTest extends TestCase
-{
-    public function test_parses_successful_send(): void
-    {
+describe('parse', function () {
+    it('parses a successful send', function () {
         $body = json_encode([
             'messaging_product' => 'whatsapp',
             'contacts' => [['input' => '447700900123', 'wa_id' => '447700900123']],
@@ -20,13 +17,12 @@ final class WhatsAppResponseParserTest extends TestCase
 
         $result = (new WhatsAppResponseParser())->parse(['status' => 200, 'body' => $body]);
 
-        $this->assertTrue($result->isSuccess());
-        $this->assertSame('wamid.HBgLABCDEF', $result->getMessageId());
-        $this->assertSame('accepted', $result->getStatus());
-    }
+        expect($result->isSuccess())->toBeTrue()
+            ->and($result->getMessageId())->toBe('wamid.HBgLABCDEF')
+            ->and($result->getStatus())->toBe('accepted');
+    });
 
-    public function test_error_status_throws_with_graph_message(): void
-    {
+    it('throws with the Graph message on an error status', function () {
         $body = json_encode([
             'error' => [
                 'message' => 'Invalid OAuth access token.',
@@ -35,20 +31,20 @@ final class WhatsAppResponseParserTest extends TestCase
             ],
         ]);
 
-        $this->expectException(MessagingException::class);
-        $this->expectExceptionMessage('Invalid OAuth access token. (code 190)');
         (new WhatsAppResponseParser())->parse(['status' => 401, 'body' => $body]);
-    }
+    })->throws(MessagingException::class, 'Invalid OAuth access token. (code 190)');
 
-    public function test_success_status_without_message_id_throws(): void
-    {
-        $this->expectException(MessagingException::class);
-        $this->expectExceptionMessage('no message id');
+    it('throws on a success status without a message id', function () {
         (new WhatsAppResponseParser())->parse(['status' => 200, 'body' => '{"messaging_product":"whatsapp"}']);
-    }
+    })->throws(MessagingException::class, 'no message id');
 
-    public function test_extract_error_includes_subcode(): void
-    {
+    it('falls back to the HTTP code on an error status without a body', function () {
+        (new WhatsAppResponseParser())->parse(['status' => 500, 'body' => '']);
+    })->throws(MessagingException::class, 'HTTP 500');
+});
+
+describe('extractError', function () {
+    it('includes the subcode', function () {
         $body = json_encode([
             'error' => [
                 'message' => 'Recipient not in allowed list',
@@ -56,22 +52,12 @@ final class WhatsAppResponseParserTest extends TestCase
                 'error_subcode' => 2655007,
             ],
         ]);
-        $this->assertSame(
-            'Recipient not in allowed list (code 131030, subcode 2655007)',
-            WhatsAppResponseParser::extractError($body)
-        );
-    }
+        expect(WhatsAppResponseParser::extractError($body))
+            ->toBe('Recipient not in allowed list (code 131030, subcode 2655007)');
+    });
 
-    public function test_extract_error_returns_empty_for_non_error_body(): void
-    {
-        $this->assertSame('', WhatsAppResponseParser::extractError('{"ok":true}'));
-        $this->assertSame('', WhatsAppResponseParser::extractError('not json'));
-    }
-
-    public function test_error_status_without_body_falls_back_to_http_code(): void
-    {
-        $this->expectException(MessagingException::class);
-        $this->expectExceptionMessage('HTTP 500');
-        (new WhatsAppResponseParser())->parse(['status' => 500, 'body' => '']);
-    }
-}
+    it('returns empty for a non-error body', function () {
+        expect(WhatsAppResponseParser::extractError('{"ok":true}'))->toBe('')
+            ->and(WhatsAppResponseParser::extractError('not json'))->toBe('');
+    });
+});

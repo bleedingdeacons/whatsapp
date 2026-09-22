@@ -4,63 +4,52 @@ declare(strict_types=1);
 
 namespace Whatsapp\Tests\Unit;
 
-use BleedingDeacons\WpMocks\TestCase;
 use Rabbit\Messaging\Models\Message;
 use Rabbit\Messaging\Models\Recipient;
 use Whatsapp\Messaging\WhatsAppPayloadBuilder;
 
-final class WhatsAppPayloadBuilderTest extends TestCase
-{
-    public function test_text_payload(): void
-    {
-        $payload = (new WhatsAppPayloadBuilder())->build(
-            Message::text(Recipient::to('+44 7700 900123'), 'Hello there')
-        );
+it('builds a text payload', function () {
+    $payload = (new WhatsAppPayloadBuilder())->build(
+        Message::text(Recipient::to('+44 7700 900123'), 'Hello there')
+    );
 
-        $this->assertSame('whatsapp', $payload['messaging_product']);
-        $this->assertSame('individual', $payload['recipient_type']);
-        $this->assertSame('447700900123', $payload['to']); // + and spaces stripped
-        $this->assertSame('text', $payload['type']);
-        $this->assertSame('Hello there', $payload['text']['body']);
-        $this->assertFalse($payload['text']['preview_url']);
-        $this->assertArrayNotHasKey('template', $payload);
-    }
+    expect($payload['messaging_product'])->toBe('whatsapp')
+        ->and($payload['recipient_type'])->toBe('individual')
+        ->and($payload['to'])->toBe('447700900123') // + and spaces stripped
+        ->and($payload['type'])->toBe('text')
+        ->and($payload['text']['body'])->toBe('Hello there')
+        ->and($payload['text']['preview_url'])->toBeFalse()
+        ->and($payload)->not->toHaveKey('template');
+});
 
-    public function test_template_payload_with_params(): void
-    {
-        $payload = (new WhatsAppPayloadBuilder())->build(
-            Message::template(Recipient::to('447700900123'), 'shift_reminder', 'en_GB', ['1 hour', 'Tuesday'])
-        );
+it('builds a template payload with params', function () {
+    $payload = (new WhatsAppPayloadBuilder())->build(
+        Message::template(Recipient::to('447700900123'), 'shift_reminder', 'en_GB', ['1 hour', 'Tuesday'])
+    );
 
-        $this->assertSame('template', $payload['type']);
-        $this->assertSame('shift_reminder', $payload['template']['name']);
-        $this->assertSame('en_GB', $payload['template']['language']['code']);
+    expect($payload['type'])->toBe('template')
+        ->and($payload['template']['name'])->toBe('shift_reminder')
+        ->and($payload['template']['language']['code'])->toBe('en_GB');
 
-        $components = $payload['template']['components'];
-        $this->assertCount(1, $components);
-        $this->assertSame('body', $components[0]['type']);
-        $this->assertSame(
-            [
-                ['type' => 'text', 'text' => '1 hour'],
-                ['type' => 'text', 'text' => 'Tuesday'],
-            ],
-            $components[0]['parameters']
-        );
-    }
+    $components = $payload['template']['components'];
+    expect($components)->toHaveCount(1)
+        ->and($components[0]['type'])->toBe('body')
+        ->and($components[0]['parameters'])->toBe([
+            ['type' => 'text', 'text' => '1 hour'],
+            ['type' => 'text', 'text' => 'Tuesday'],
+        ]);
+});
 
-    public function test_template_payload_without_params_omits_components(): void
-    {
-        $payload = (new WhatsAppPayloadBuilder())->build(
-            Message::template(Recipient::to('447700900123'), 'hello_world', 'en_US')
-        );
+it('omits components from a template payload without params', function () {
+    $payload = (new WhatsAppPayloadBuilder())->build(
+        Message::template(Recipient::to('447700900123'), 'hello_world', 'en_US')
+    );
 
-        $this->assertSame('hello_world', $payload['template']['name']);
-        $this->assertArrayNotHasKey('components', $payload['template']);
-    }
+    expect($payload['template']['name'])->toBe('hello_world')
+        ->and($payload['template'])->not->toHaveKey('components');
+});
 
-    public function test_normalise_to_strips_non_digits(): void
-    {
-        $this->assertSame('447700900123', WhatsAppPayloadBuilder::normaliseTo('+44 (7700) 900-123'));
-        $this->assertSame('', WhatsAppPayloadBuilder::normaliseTo('not a number'));
-    }
-}
+it('strips non-digits when normalising the recipient', function () {
+    expect(WhatsAppPayloadBuilder::normaliseTo('+44 (7700) 900-123'))->toBe('447700900123')
+        ->and(WhatsAppPayloadBuilder::normaliseTo('not a number'))->toBe('');
+});

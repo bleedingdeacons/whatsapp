@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Whatsapp\Tests\Unit;
 
-use BleedingDeacons\WpMocks\TestCase;
 use Rabbit\Messaging\Interfaces\MessagingException;
 use Rabbit\Messaging\Models\Message;
 use Rabbit\Messaging\Models\Recipient;
@@ -47,112 +46,93 @@ final class ScriptedTransport implements HttpTransport
     }
 }
 
-final class WhatsAppMessageServiceTest extends TestCase
+function whatsappService(ScriptedTransport $transport, string $token = 'TKN', string $phoneId = '1234567890'): WhatsAppMessageService
 {
-    private function makeService(ScriptedTransport $transport, string $token = 'TKN', string $phoneId = '1234567890'): WhatsAppMessageService
-    {
-        return new WhatsAppMessageService(
-            transport: $transport,
-            builder: new WhatsAppPayloadBuilder(),
-            parser: new WhatsAppResponseParser(),
-            accessToken: $token,
-            phoneNumberId: $phoneId,
-            apiVersion: 'v23.0',
-            baseUrl: 'https://graph.facebook.com',
-        );
-    }
+    return new WhatsAppMessageService(
+        transport: $transport,
+        builder: new WhatsAppPayloadBuilder(),
+        parser: new WhatsAppResponseParser(),
+        accessToken: $token,
+        phoneNumberId: $phoneId,
+        apiVersion: 'v23.0',
+        baseUrl: 'https://graph.facebook.com',
+    );
+}
 
-    public function test_send_posts_to_messages_endpoint_with_bearer_and_json(): void
-    {
+describe('send', function () {
+    it('posts to the messages endpoint with a bearer token and JSON', function () {
         $transport = new ScriptedTransport();
         $transport->queue(200, json_encode(['messages' => [['id' => 'wamid.OK']]]));
 
-        $result = $this->makeService($transport)
+        $result = whatsappService($transport)
             ->send(Message::text(Recipient::to('+447700900123', 'Anon', 5), 'Hi'));
 
-        $this->assertSame('wamid.OK', $result->getMessageId());
+        expect($result->getMessageId())->toBe('wamid.OK');
 
         $call = $transport->calls[0];
-        $this->assertSame('POST', $call['method']);
-        $this->assertSame('https://graph.facebook.com/v23.0/1234567890/messages', $call['url']);
-        $this->assertSame('Bearer TKN', $call['headers']['Authorization']);
-        $this->assertSame('application/json', $call['headers']['Content-Type']);
+        expect($call['method'])->toBe('POST')
+            ->and($call['url'])->toBe('https://graph.facebook.com/v23.0/1234567890/messages')
+            ->and($call['headers']['Authorization'])->toBe('Bearer TKN')
+            ->and($call['headers']['Content-Type'])->toBe('application/json');
 
         $sent = json_decode($call['body'], true);
-        $this->assertSame('whatsapp', $sent['messaging_product']);
-        $this->assertSame('447700900123', $sent['to']);
-        $this->assertSame('Hi', $sent['text']['body']);
-    }
+        expect($sent['messaging_product'])->toBe('whatsapp')
+            ->and($sent['to'])->toBe('447700900123')
+            ->and($sent['text']['body'])->toBe('Hi');
+    });
 
-    public function test_send_without_token_throws_not_configured(): void
-    {
+    it('throws not configured without a token', function () {
         $transport = new ScriptedTransport();
-        $service = $this->makeService($transport, token: '');
+        $service = whatsappService($transport, token: '');
 
-        $this->expectException(MessagingException::class);
-        $this->expectExceptionMessage('not configured');
-        $service->send(Message::text(Recipient::to('+447700900123'), 'Hi'));
+        expect(fn () => $service->send(Message::text(Recipient::to('+447700900123'), 'Hi')))
+            ->toThrow(MessagingException::class, 'not configured');
 
-        $this->assertCount(0, $transport->calls); // never reached the wire
-    }
+        expect($transport->calls)->toHaveCount(0); // never reached the wire
+    });
 
-    public function test_send_surfaces_graph_error(): void
-    {
+    it('surfaces a Graph error', function () {
         $transport = new ScriptedTransport();
         $transport->queue(401, json_encode(['error' => ['message' => 'Bad token', 'code' => 190]]));
 
-        $this->expectException(MessagingException::class);
-        $this->expectExceptionMessage('Bad token');
-        $this->makeService($transport)->send(Message::text(Recipient::to('+447700900123'), 'Hi'));
-    }
+        whatsappService($transport)->send(Message::text(Recipient::to('+447700900123'), 'Hi'));
+    })->throws(MessagingException::class, 'Bad token');
 
-    public function test_send_wraps_transport_failure(): void
-    {
+    it('wraps a transport failure', function () {
         $transport = new ScriptedTransport();
         $transport->throwOnNext('dns failure');
 
-        $this->expectException(MessagingException::class);
-        $this->expectExceptionMessage('Could not reach the WhatsApp API');
-        $this->makeService($transport)->send(Message::text(Recipient::to('+447700900123'), 'Hi'));
-    }
+        whatsappService($transport)->send(Message::text(Recipient::to('+447700900123'), 'Hi'));
+    })->throws(MessagingException::class, 'Could not reach the WhatsApp API');
+});
 
-    public function test_invalid_message_throws_before_sending(): void
-    {
-        $transport = new ScriptedTransport();
-        $service = $this->makeService($transport);
+it('throws on an invalid message before sending', function () {
+    $transport = new ScriptedTransport();
+    $service = whatsappService($transport);
 
-        try {
-            $service->send(Message::text(Recipient::to('+447700900123'), '   ')); // empty body
-            $this->fail('expected MessagingException');
-        } catch (MessagingException $e) {
-            $this->assertStringContainsString('non-empty body', $e->getMessage());
-        }
-        $this->assertCount(0, $transport->calls);
-    }
+    expect(fn () => $service->send(Message::text(Recipient::to('+447700900123'), '   '))) // empty body
+        ->toThrow(MessagingException::class, 'non-empty body');
 
-    public function test_test_connection_gets_phone_number_node(): void
-    {
+    expect($transport->calls)->toHaveCount(0);
+});
+
+describe('testConnection', function () {
+    it('gets the phone number node', function () {
         $transport = new ScriptedTransport();
         $transport->queue(200, json_encode(['id' => '1234567890', 'display_phone_number' => '+44 7700 900123']));
 
-        $this->assertTrue($this->makeService($transport)->testConnection());
+        expect(whatsappService($transport)->testConnection())->toBeTrue();
 
         $call = $transport->calls[0];
-        $this->assertSame('GET', $call['method']);
-        $this->assertSame(
-            'https://graph.facebook.com/v23.0/1234567890?fields=display_phone_number,verified_name',
-            $call['url']
-        );
-        $this->assertSame('Bearer TKN', $call['headers']['Authorization']);
-    }
+        expect($call['method'])->toBe('GET')
+            ->and($call['url'])->toBe('https://graph.facebook.com/v23.0/1234567890?fields=display_phone_number,verified_name')
+            ->and($call['headers']['Authorization'])->toBe('Bearer TKN');
+    });
 
-    public function test_test_connection_failure_throws(): void
-    {
+    it('throws on failure', function () {
         $transport = new ScriptedTransport();
         $transport->queue(401, json_encode(['error' => ['message' => 'Bad token', 'code' => 190]]));
 
-        $this->expectException(MessagingException::class);
-        $this->expectExceptionMessage('Bad token');
-        $this->makeService($transport)->testConnection();
-    }
-}
+        whatsappService($transport)->testConnection();
+    })->throws(MessagingException::class, 'Bad token');
+});
