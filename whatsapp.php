@@ -3,7 +3,7 @@
 /**
  * Plugin Name: WhatsApp
  * Description: Outbound messaging to Unity members over the WhatsApp Business Cloud API (Meta Graph API). Implements the Rabbit library's MessageService contract by posting to /<phone-number-id>/messages with a bearer token, and provides the messaging roles and the MemberMessenger helper. Requires Unity for member data and Scrutiny for GDPR audit logging.
- * Version: 2.0.4
+ * Version: 2.1.0
  * Requires at least: 6.1
  * Requires PHP: 8.4
  * Requires Plugins: unity, scrutiny
