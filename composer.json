@@ -1,6 +1,6 @@
 {
     "name": "bleeding-deacons/whatsapp",
-    "description": "Rabbit driver for the WhatsApp Business Cloud API (Meta Graph API). Sends messages to Unity members via /<phone-number-id>/messages.",
+    "description": "Outbound messaging to Unity members over the WhatsApp Business Cloud API (Meta Graph API), built on the Rabbit library. Sends via /<phone-number-id>/messages.",
     "type": "wordpress-plugin",
     "license": "MIT (Modified)",
     "authors": [
@@ -12,6 +12,10 @@
     "repositories": [
         {
             "type": "vcs",
+            "url": "https://github.com/bleedingdeacons/rabbit"
+        },
+        {
+            "type": "vcs",
             "url": "https://github.com/bleedingdeacons/wp-mocks"
         }
     ],
@@ -19,6 +23,7 @@
         "php": ">=8.4",
         "ext-json": "*",
         "ext-openssl": "*",
+        "bleedingdeacons/rabbit": "^2.1",
         "psr/container": "^2.0"
     },
     "require-dev": {

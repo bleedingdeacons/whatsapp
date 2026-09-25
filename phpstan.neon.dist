@@ -40,13 +40,14 @@ parameters:
         # to be scanned explicitly.
         - whatsapp.php
     scanDirectories:
-        # WhatsApp is a Rabbit driver and implements its contracts. Sentinel
-        # is optional at runtime — HasLogger degrades to error_log() without
-        # it — but its Sentinel_Log_Channel is referenced in type positions.
-        # sentinel-logger.php is not PSR-4 compliant and composer skips it
-        # when generating autoload rules, so scanDirectories (which reads
-        # files directly) is what resolves it.
-        - ../rabbit/src
+        # The Rabbit library comes from vendor/. Unity supplies the
+        # MemberRepository the service provider hands to MemberMessenger.
+        # Sentinel is optional at runtime — HasLogger degrades to error_log()
+        # without it — but its Sentinel_Log_Channel is referenced in type
+        # positions. sentinel-logger.php is not PSR-4 compliant and composer
+        # skips it when generating autoload rules, so scanDirectories (which
+        # reads files directly) is what resolves it.
+        - ../unity/src
         - ../sentinel/src
     ignoreErrors:
         # The get_plugin_data and dbDelta entries were removed from here once

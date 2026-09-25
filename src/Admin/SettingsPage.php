@@ -26,11 +26,11 @@ use Rabbit\Messaging\Models\Recipient;
  *     resubmit-on-reload.
  *
  *  2. A "send test" panel: pick a Unity member (by ID) or a raw number,
- *     type a short message, and dispatch it through Rabbit's
+ *     type a short message, and dispatch it through the Rabbit library's
  *     {@see MemberMessenger} (member ID → audited) or the bound
  *     {@see MessageService} (raw number → not member-scoped).
  *
- * Capability checks use Rabbit's capabilities: view requires
+ * Capability checks use the Rabbit library's capabilities: view requires
  * `rabbit_view_messaging`, saving requires `rabbit_manage_messaging`,
  * and sending a test requires `rabbit_send_message`.
  */

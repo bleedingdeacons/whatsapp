@@ -9,25 +9,28 @@ if (!defined('ABSPATH')) {
 }
 
 use Psr\Container\ContainerInterface;
+use Rabbit\Members\MemberMessenger;
 use Rabbit\Messaging\Interfaces\MessageService;
 use Rabbit\Transport\Interfaces\HttpTransport;
 use Rabbit\Transport\Interfaces\HttpTransportFactory;
 use Rabbit\Transport\UserAgent;
 use Rabbit\Transport\WpHttpTransportFactory;
+use Unity\Members\Interfaces\MemberRepository;
 use Whatsapp\Admin\WhatsAppSettings;
 use Whatsapp\Messaging\WhatsAppMessageService;
 use Whatsapp\Messaging\WhatsAppPayloadBuilder;
 use Whatsapp\Messaging\WhatsAppResponseParser;
 
 /**
- * Wire WhatsApp's concrete driver into Rabbit's (Unity's) container.
+ * Wire WhatsApp's concrete driver into Unity's shared container.
  *
- * Three bindings:
+ * Four bindings:
  *
  *  1. {@see HttpTransportFactory} → {@see WpHttpTransportFactory}.
- *     Rabbit owns the WP-HTTP transport; WhatsApp just configures the
- *     factory (TLS verification + timeout from settings) and attributes
- *     the transport's HTTP logging to the "whatsapp" channel.
+ *     The Rabbit library owns the WP-HTTP transport; WhatsApp just
+ *     configures the factory (TLS verification + timeout from settings)
+ *     and attributes the transport's HTTP logging to the "whatsapp"
+ *     channel.
  *
  *  2. {@see HttpTransport} → resolved by asking the factory for a fresh
  *     instance.
@@ -35,6 +38,12 @@ use Whatsapp\Messaging\WhatsAppResponseParser;
  *  3. {@see MessageService} → {@see WhatsAppMessageService}. Settings are
  *     read inside the factory, not at registration time, so an admin-page
  *     save takes effect on the next request without needing a reload.
+ *
+ *  4. {@see MemberMessenger} — the Rabbit library's member → message →
+ *     driver + Scrutiny audit helper. The Rabbit plugin registered this
+ *     until Rabbit became a library; it lives in Unity's container so any
+ *     plugin booting on `unity/loaded` can resolve it, and it resolves the
+ *     driver and Scrutiny's AuditLogger from that container at send time.
  *
  * All bindings are factories so a request that never sends a message
  * doesn't pay the cost of building them.
@@ -85,6 +94,13 @@ final class WhatsAppServiceProvider
                 phoneNumberId: $settings['phone_number_id'],
                 apiVersion: $settings['api_version'],
                 baseUrl: $settings['base_url'],
+            );
+        });
+
+        $container->register(MemberMessenger::class, function (ContainerInterface $c) {
+            return new MemberMessenger(
+                $c,
+                $c->get(MemberRepository::class),
             );
         });
 

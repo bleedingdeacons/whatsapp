@@ -9,24 +9,34 @@
 ![PHP](https://img.shields.io/badge/php-8.1%2B-777bb4)
 ![Licence](https://img.shields.io/badge/licence-MIT%20(Modified)-green)
 
-Rabbit driver for the **WhatsApp Business Cloud API** (Meta Graph API). It
-binds a concrete `MessageService` against [Rabbit](https://github.com/bleedingdeacons/rabbit)'s
-contract so Unity members can be messaged over WhatsApp.
+Outbound messaging to **Unity** members over the **WhatsApp Business Cloud API**
+(Meta Graph API). It is built on the [Rabbit](https://github.com/bleedingdeacons/rabbit)
+library — a Composer dependency, not a plugin — and implements Rabbit's
+`MessageService` contract so Unity members can be messaged over WhatsApp.
 
-WhatsApp does nothing on its own — it requires Rabbit (which itself requires
-Unity for member data and Scrutiny for the GDPR audit log).
+WhatsApp requires **Unity** (member data) and **Scrutiny** (the GDPR audit log).
 
 ## Architecture
 
 ```
-Unity ── Scrutiny ── Rabbit (contracts + MemberMessenger)
-                     └── WhatsApp (this plugin: Cloud API driver)
+Unity (plugins_loaded) ──unity/loaded──▶ WhatsApp ──registers──▶ Unity's container ◀──get── any plugin on unity/loaded
 ```
 
-WhatsApp boots on `rabbit/loaded` and registers three bindings into the shared
-container: an `HttpTransportFactory`, an `HttpTransport`, and the
-`MessageService` → `WhatsAppMessageService` driver. Settings are read at resolve
-time, so a settings change takes effect on the next request.
+- **Rabbit** is a library WhatsApp requires through Composer. It defines
+  `MessageService`, the message models, the HTTP transport, the messaging roles
+  and the `MemberMessenger` helper.
+- **WhatsApp** boots on `unity/loaded` and registers four bindings into Unity's
+  shared container: an `HttpTransportFactory`, an `HttpTransport`, the
+  `MessageService` → `WhatsAppMessageService` driver, and Rabbit's
+  `MemberMessenger`. Settings are read at resolve time, so a settings change
+  takes effect on the next request.
+- **WhatsApp owns what the Rabbit plugin used to**: it registers
+  `MemberMessenger`, refuses to boot without Scrutiny, and registers the
+  `rabbit_*` roles on activation, removes them on deactivation and uninstall,
+  and re-registers them if they go missing.
+
+Until Rabbit v2.1.0, Rabbit was a plugin that had to be active alongside
+WhatsApp, and WhatsApp bound its driver on the `rabbit/loaded` action.
 
 ## How it sends
 
@@ -65,16 +75,36 @@ site's `AUTH_KEY`/`AUTH_SALT`, and is never logged.
 
 ## Usage
 
-End users send via Rabbit's helper — WhatsApp is just the bound driver:
+Other plugins send through Rabbit's `MemberMessenger`, which WhatsApp registers
+in Unity's container:
 
 ```php
-rabbit()
+unity()
     ->get(\Rabbit\Members\MemberMessenger::class)
     ->sendTextToMember(123, 'Your shift starts in 1 hour.');
 ```
 
 Or use **WhatsApp → Send test** in wp-admin to message a member by ID (audited)
 or a raw number (ad-hoc).
+
+## Capabilities
+
+| Capability | Meaning |
+|---|---|
+| `rabbit_manage_messaging` | Configure the provider connection. |
+| `rabbit_send_message` | Send messages to members. |
+| `rabbit_view_messaging` | View messaging status / settings. |
+
+Roles `rabbit_operator`, `rabbit_sender` and `rabbit_viewer` are created on
+activation; administrators inherit all three capabilities. The names keep the
+`rabbit_` prefix from when the Rabbit plugin owned them, so existing role
+assignments carry over.
+
+## Kill switch
+
+Define `WHATSAPP_KILL` as `true` in `wp-config.php` to stand WhatsApp down
+without deactivating it. Nothing is registered, so `MemberMessenger` is absent
+from Unity's container. It replaces `RABBIT_KILL`.
 
 ## Development
 
@@ -91,8 +121,8 @@ composer install
 | `composer test:integration` | Run integration tests only |
 | `composer test:coverage` | Generate an HTML coverage report |
 | `composer phpstan` | Run PHPStan static analysis |
-| `composer cs` | Check WordPress coding standards |
-| `composer cs:fix` | Auto-fix coding standard violations |
+| `composer phpcs` | Check coding standards |
+| `composer phpcs:fix` | Auto-fix coding standard violations |
 | `composer check` | Run CS + PHPStan + tests in sequence |
 
 Line coverage is reported to [Coveralls](https://coveralls.io/github/bleedingdeacons/whatsapp?branch=main)
