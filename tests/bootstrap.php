@@ -15,10 +15,9 @@ declare(strict_types=1);
  * branch these tests run; defining wp_log() would silently route logging
  * somewhere no test looks.
  *
- * Beyond the stubs this still loads the Rabbit source this driver depends on
- * (interfaces, models, abstract base, transport contracts), which is not
- * reachable from Composer's autoloader here, then the WhatsApp source under
- * test.
+ * The Rabbit library this driver builds on is a Composer dependency, so the
+ * autoloader below supplies it. Beyond the stubs this loads only the WhatsApp
+ * source under test.
  */
 
 use BleedingDeacons\WpMocks\Bootstrap;
@@ -34,18 +33,6 @@ WpState::$pluginSlug = 'whatsapp';
 if (!defined('ABSPATH')) {
     define('ABSPATH', __DIR__ . '/');
 }
-
-// --- Rabbit source (the contracts this driver builds on) -------------
-$rabbit = __DIR__ . '/../../rabbit/src';
-require_once $rabbit . '/Logger/HasLogger.php';
-require_once $rabbit . '/Messaging/Interfaces/MessagingException.php';
-require_once $rabbit . '/Messaging/Models/Recipient.php';
-require_once $rabbit . '/Messaging/Models/Message.php';
-require_once $rabbit . '/Messaging/Models/MessageResult.php';
-require_once $rabbit . '/Messaging/Interfaces/MessageService.php';
-require_once $rabbit . '/Messaging/AbstractMessageService.php';
-require_once $rabbit . '/Transport/Interfaces/TransportException.php';
-require_once $rabbit . '/Transport/Interfaces/HttpTransport.php';
 
 // --- WhatsApp source under test ----------------------------------------
 $src = __DIR__ . '/../src';

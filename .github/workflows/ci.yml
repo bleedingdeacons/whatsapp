@@ -37,7 +37,7 @@ jobs:
 
     defaults:
       run:
-        # WhatsApp is checked out alongside Rabbit and Sentinel, mirroring a
+        # WhatsApp is checked out alongside Unity and Sentinel, mirroring a
         # WordPress plugins/ directory, so run everything from inside WhatsApp.
         working-directory: whatsapp
 
@@ -47,17 +47,16 @@ jobs:
         with:
           path: whatsapp
 
-      - name: Checkout Rabbit
-        # WhatsApp is a Rabbit driver and implements its contracts.
-        # Load-bearing for both gates: phpstan.neon scans ../rabbit/src so
-        # cross-plugin symbols resolve, and tests/bootstrap.php requires the
-        # same path at runtime. Rabbit was private until recently, which is
-        # why neither check could run here at all.
+      - name: Checkout Unity
+        # Provides the MemberRepository interface the service provider hands
+        # to the Rabbit library's MemberMessenger. Scanned by phpstan.neon so
+        # cross-plugin symbols resolve. Rabbit itself is a Composer dependency
+        # now and arrives with `composer install`, not as a sibling checkout.
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          repository: bleedingdeacons/rabbit
+          repository: bleedingdeacons/unity
           ref: main
-          path: rabbit
+          path: unity
 
       - name: Checkout Sentinel
         # Provides Sentinel_Log_Channel, referenced in type positions by HasLogger.
@@ -335,13 +334,6 @@ jobs:
           # Full history and tags: see the version step below.
           fetch-depth: 0
           path: whatsapp
-
-      - name: Checkout Rabbit
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          repository: bleedingdeacons/rabbit
-          ref: main
-          path: rabbit
 
       - name: Checkout Sentinel
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1

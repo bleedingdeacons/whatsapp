@@ -15,9 +15,11 @@ use Whatsapp\Admin\SettingsPage;
 /**
  * Main WhatsApp Plugin Class.
  *
- * WhatsApp is the implementation plugin — it binds a concrete driver for
- * {@see \Rabbit\Messaging\Interfaces\MessageService} against
- * Rabbit's contract, talking to the Meta WhatsApp Business Cloud API.
+ * WhatsApp is the messaging plugin. It binds a concrete driver for the
+ * Rabbit library's {@see \Rabbit\Messaging\Interfaces\MessageService},
+ * talking to the Meta WhatsApp Business Cloud API, into Unity's shared
+ * container, and carries what the Rabbit plugin used to: the
+ * MemberMessenger registration and the messaging roles.
  *
  * The class is intentionally thin. Real work happens in the service
  * provider (container wiring) and the admin page (UI).
