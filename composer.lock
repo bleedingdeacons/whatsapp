@@ -8,16 +8,16 @@
     "packages": [
         {
             "name": "bleedingdeacons/rabbit",
-            "version": "v2.1.0",
+            "version": "v2.1.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/bleedingdeacons/rabbit.git",
-                "reference": "d55024a9962f934f9f435a38bd632b4b41f5b932"
+                "reference": "3e06d5e88fe75afda7037e2a3e884dc4c5fef078"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/bleedingdeacons/rabbit/zipball/d55024a9962f934f9f435a38bd632b4b41f5b932",
-                "reference": "d55024a9962f934f9f435a38bd632b4b41f5b932",
+                "url": "https://api.github.com/repos/bleedingdeacons/rabbit/zipball/3e06d5e88fe75afda7037e2a3e884dc4c5fef078",
+                "reference": "3e06d5e88fe75afda7037e2a3e884dc4c5fef078",
                 "shasum": ""
             },
             "require": {
@@ -88,10 +88,10 @@
             ],
             "description": "Outbound-messaging contracts, models, HTTP transport, capabilities and the MemberMessenger helper, bundled by WhatsApp. A Composer library, not a WordPress plugin.",
             "support": {
-                "source": "https://github.com/bleedingdeacons/rabbit/tree/v2.1.0",
+                "source": "https://github.com/bleedingdeacons/rabbit/tree/v2.1.1",
                 "issues": "https://github.com/bleedingdeacons/rabbit/issues"
             },
-            "time": "2026-09-25T20:10:05+00:00"
+            "time": "2026-10-08T22:40:43+00:00"
         },
         {
             "name": "psr/container",
